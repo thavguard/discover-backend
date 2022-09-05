@@ -58,13 +58,13 @@ Item.belongsTo(ItemType)
 Item.hasMany(Rating)
 Rating.belongsTo(Item)
 
-Item.hasMany(FavoriteItem)
+Item.hasOne(FavoriteItem)
 FavoriteItem.belongsTo(Item)
 
-Item.hasMany(PurchasedItem)
+Item.hasOne(PurchasedItem)
 PurchasedItem.belongsTo(Item)
 
-Item.hasMany(SoldItem)
+Item.hasOne(SoldItem)
 SoldItem.belongsTo(Item)
 
 module.exports = { Item, ItemType }

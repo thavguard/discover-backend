@@ -1,5 +1,6 @@
 const { DataTypes } = require("sequelize");
 const sequelize = require("../db");
+const User = require("./user");
 
 const Favorite = sequelize.define('favorite', {
     id: {
@@ -16,6 +17,7 @@ const FavoriteItem = sequelize.define('favorite_item', {
         autoIncrement: true
     }
 })
+
 
 Favorite.hasMany(FavoriteItem)
 FavoriteItem.belongsTo(Favorite)
