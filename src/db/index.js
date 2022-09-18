@@ -1,5 +1,5 @@
 const User = require('./models/user')
-const {Item, ItemType} = require('./models/item')
+const {Item, ItemType, ItemInfo} = require('./models/item')
 const {Favorite, FavoriteItem} = require('./models/favorite')
 const {Purchased, PurchasedItem} = require('./models/purchased')
 const Rating = require('./models/rating')
@@ -11,6 +11,7 @@ module.exports = {
     User,
     Item,
     ItemType,
+    ItemInfo,
     Favorite,
     FavoriteItem,
     Purchased,
@@ -18,5 +19,7 @@ module.exports = {
     Rating,
     Sold,
     SoldItem,
-    Token
+    Token,
+
+
 }

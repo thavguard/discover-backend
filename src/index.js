@@ -12,7 +12,7 @@ const router = require('./routes/index')
 const start = async () => {
     try {
         await sequelize.authenticate()
-        await sequelize.sync()
+        await sequelize.sync({ alter: true })
         console.log('Соединение с БД было успешно установлено')
         app.listen(PORT, () => console.log(`Server has been started on port ${PORT}`))
     } catch (e) {

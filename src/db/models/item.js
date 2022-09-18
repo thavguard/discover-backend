@@ -23,14 +23,7 @@ const Item = sequelize.define(
         price: {
             type: DataTypes.INTEGER
         },
-        rating: {
-            type: DataTypes.INTEGER,
-            defaultValue: 0
-        },
         image: {
-            type: DataTypes.STRING
-        },
-        type: {
             type: DataTypes.STRING
         },
         address: {
@@ -52,11 +45,17 @@ const ItemType = sequelize.define('item_type', {
     }
 })
 
+const ItemInfo = sequelize.define('item__info', {
+    id: { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },
+    title: { type: DataTypes.STRING, allowNull: false },
+    description: { type: DataTypes.STRING, allowNull: false }
+})
+
 ItemType.hasMany(Item)
 Item.belongsTo(ItemType)
 
-Item.hasMany(Rating)
-Rating.belongsTo(Item)
+Item.hasMany(ItemInfo, {as: 'info'})
+ItemInfo.belongsTo(Item)
 
 Item.hasOne(FavoriteItem)
 FavoriteItem.belongsTo(Item)
@@ -67,4 +66,4 @@ PurchasedItem.belongsTo(Item)
 Item.hasOne(SoldItem)
 SoldItem.belongsTo(Item)
 
-module.exports = { Item, ItemType }
+module.exports = { Item, ItemType, ItemInfo }

@@ -13,5 +13,9 @@ router.get('/item/:id', itemController.getItemById)
 router.delete('/item', [tokenMiddlewarte], itemController.deleteItem)
 router.get('/item/:id/img', itemController.getImageById)
 
+router.get('/item/type', tokenMiddlewarte, itemController.getItemTypes)
+router.post('/item/type', tokenMiddlewarte, itemController.addItemType)
+router.delete('/item/type', tokenMiddlewarte, itemController.deleteItemType)
+
 
 module.exports = router

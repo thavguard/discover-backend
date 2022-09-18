@@ -1,13 +1,13 @@
 const ApiError = require("../exceptions/api-error")
-const purchasedService = require("../service/purchased-service")
+const soldService = require("../service/sold-service")
 
 
-class PurchasedController {
-    async addToPurchased(req, res, next) {
+class SoldController {
+    async addToSold(req, res, next) {
         try {
             const { itemId } = req.body
 
-            const fav = await purchasedService.addToPurchased(itemId, req.user)
+            const fav = await soldService.addToSold(itemId, req.user)
 
             return res.json(fav)
         } catch (error) {
@@ -16,10 +16,10 @@ class PurchasedController {
     }
 
 
-    async getAllPurchased(req, res, next) {
+    async getAllSold(req, res, next) {
         try {
 
-            const favs = await purchasedService.getAllPurchased(req.user)
+            const favs = await soldService.getAllSold(req.user)
 
             return res.json(favs)
         } catch (error) {
@@ -27,11 +27,11 @@ class PurchasedController {
         }
     }
 
-    async getPurchasedById(req, res, next) {
+    async getSoldById(req, res, next) {
         try {
             const { itemId } = req.params
 
-            const fav = await purchasedService.getPurchasedById(itemId, req.user)
+            const fav = await soldService.getSoldById(itemId, req.user)
 
             return res.json(fav)
         } catch (error) {
@@ -39,11 +39,11 @@ class PurchasedController {
         }
     }
 
-    async deletePurchased(req, res, next) {
+    async deleteSold(req, res, next) {
         try {
             const { itemId } = req.body
 
-            const fav = purchasedService.deletePurchased(itemId, req.user)
+            const fav = soldService.deleteSold(itemId, req.user)
 
             return res.json(fav)
         } catch (error) {
@@ -52,4 +52,4 @@ class PurchasedController {
     }
 }
 
-module.exports = new PurchasedController()
+module.exports = new SoldController()

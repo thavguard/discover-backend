@@ -44,6 +44,18 @@ const User = sequelize.define(
     }
 )
 
+const UserRating = sequelize.define('user_rating', {
+    id: {
+        type: DataTypes.INTEGER,
+        primaryKey: true,
+        autoIncrement: true
+    },
+    userFrom: {
+        type: DataTypes.INTEGER,
+        allowNull: false,
+    }
+})
+
 User.hasOne(Favorite)
 Favorite.belongsTo(User)
 
@@ -53,7 +65,7 @@ Purchased.belongsTo(User)
 User.hasOne(Sold)
 Sold.belongsTo(User)
 
-User.hasMany(Rating)
-Rating.belongsTo(User)
+User.belongsToMany(Rating, {through: UserRating})
+Rating.belongsToMany(User, {through: UserRating})
 
 module.exports = User

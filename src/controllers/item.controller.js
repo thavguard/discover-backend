@@ -1,16 +1,30 @@
 const db = require('../db/db')
 const path = require('path')
 const fs = require('fs')
-const { Item } = require('../db/models/item')
-
+const { Item, ItemType, ItemInfo } = require('../db/models/item')
 
 class ItemController {
     async addItem(req, res, next) {
         try {
-            const { name, description, price, } = req.body
+            let { name, description, price, itemTypeId, address, info } = req.body
             const { filename, size } = req.file
 
-            const item = await Item.create({ name, description, price, image: filename })
+
+            const item = await Item.create({ name, description, price, image: filename, itemTypeId, address })
+
+            if (info) {
+                console.log(info);
+                info = JSON.parse(info)
+                console.log(info);
+                info.forEach(i =>
+                    ItemInfo.create({
+                        title: i.title,
+                        description: i.description,
+                        itemId: item.id
+                    })
+                )
+            }
+
 
             return res.json(item)
 
@@ -19,6 +33,55 @@ class ItemController {
             res.json({
                 error: message
             })
+        }
+    }
+
+    async addItemType(req, res, next) {
+        try {
+            const { name } = req.body
+            const typeId = await ItemType.create({ name })
+
+            return res.json(typeId)
+
+        } catch (error) {
+            next(error)
+        }
+    }
+
+    async getItemTypes(req, res, next) {
+        try {
+            const { id } = req.query
+
+            console.log(id);
+
+            let type
+
+            if (id) {
+                type = await ItemType.findOne({ where: { id } })
+            }
+
+            if (!id) {
+                type = await ItemType.findAll()
+            }
+
+
+
+            return res.json(type)
+
+        } catch (error) {
+            next(error)
+        }
+    }
+
+    async deleteItemType(req, res, next) {
+        try {
+            const { id } = req.body
+            const typeId = await ItemType.destroy({ where: { id } })
+
+            return res.json(typeId)
+
+        } catch (error) {
+            next(error)
         }
     }
 
@@ -46,10 +109,25 @@ class ItemController {
 
     async getAllItems(req, res) {
         try {
+            const { itemTypeId } = req.query
+            let items
 
-            const item = await Item.findAll()
-            console.log(item);
-            res.json(item)
+            console.log(itemTypeId);
+
+            if (itemTypeId) {
+                items = await Item.findAll({ where: { itemTypeId } })
+            }
+
+            if (!itemTypeId) {
+                items = await Item.findAll()
+
+            }
+
+
+            return res.json(items)
+
+
+
         } catch ({ message }) {
             res.statusCode = 500
             res.json({
@@ -63,7 +141,7 @@ class ItemController {
         try {
 
             const { id } = req.params
-            const item = await Item.findOne({ where: { id } })
+            const item = await Item.findOne({ where: { id }, include: { model: ItemInfo, as: 'info' } })
             console.log(item);
             res.json(item)
 
@@ -100,7 +178,6 @@ class ItemController {
     async getImageById(req, res) {
         try {
             const { id } = req.params
-            // const item = await db.query(`SELECT * FROM item WHERE id = $1`, [id])
             const item = await Item.findOne({ where: { id } })
 
             const imagePath = path.resolve(__dirname, '../../uploads', item.image)

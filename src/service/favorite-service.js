@@ -22,7 +22,7 @@ class FavoriteService {
         const userFavs = await Favorite.findOne({ where: { userId: user.id } })
 
         if (!userFavs) {
-            throw ApiError.BadRequest('У пользователя нет товаров в избранном')
+            throw ApiError.BadRequest('У пользователя нет товаров в списке купленных')
         }
 
         const favs = await FavoriteItem.findAll({ where: { favoriteId: userFavs.id } })
