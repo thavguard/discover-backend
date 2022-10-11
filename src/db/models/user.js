@@ -65,7 +65,7 @@ Purchased.belongsTo(User)
 User.hasOne(Sold)
 Sold.belongsTo(User)
 
-User.belongsToMany(Rating, {through: UserRating})
-Rating.belongsToMany(User, {through: UserRating})
+User.belongsToMany(Rating, { through: UserRating })
+Rating.belongsToMany(User, { through: UserRating })
 
 module.exports = User

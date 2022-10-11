@@ -9,6 +9,9 @@ const errorMiddleware = require('./middlewares/error-middleware')
 const router = require('./routes/index')
 
 
+
+
+
 const start = async () => {
     try {
         await sequelize.authenticate()
@@ -25,9 +28,12 @@ const start = async () => {
 const PORT = process.env.PORT || 5050
 const app = express()
 
+app.use(cors({
+    origin: process.env.CLIEN_URL,
+    credentials: true
+}))
 app.use(cookieParser())
 app.use(express.json())
-app.use(cors())
 app.use('/', router)
 
 app.use(errorMiddleware)

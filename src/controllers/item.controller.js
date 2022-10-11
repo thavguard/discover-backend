@@ -9,6 +9,10 @@ class ItemController {
             let { name, description, price, itemTypeId, address, info } = req.body
             const { filename, size } = req.file
 
+            if (size > 1.5e7) {
+                return next(ApiError.BadRequest('Слишком большой размер файла. Максимальный - 15мб'))
+            }
+
 
             const item = await Item.create({ name, description, price, image: filename, itemTypeId, address })
 
@@ -65,7 +69,6 @@ class ItemController {
             }
 
 
-
             return res.json(type)
 
         } catch (error) {
@@ -89,6 +92,11 @@ class ItemController {
         try {
             const { name, description, price, id, rating } = req.body
             const { filename, size } = req.file
+
+            if (size > 1.5e7) {
+                return next(ApiError.BadRequest('Слишком большой размер файла. Максимальный - 15мб'))
+            }
+
             const item = await Item.update({ name, description, price, image: filename, rating }, {
                 where: {
                     id: id

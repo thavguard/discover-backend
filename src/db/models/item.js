@@ -41,8 +41,10 @@ const ItemType = sequelize.define('item_type', {
     name: {
         type: DataTypes.STRING,
         unique: true,
-        allowNull: true
+        allowNull: false
     }
+}, {
+    timestamps: false
 })
 
 const ItemInfo = sequelize.define('item__info', {
@@ -54,7 +56,7 @@ const ItemInfo = sequelize.define('item__info', {
 ItemType.hasMany(Item)
 Item.belongsTo(ItemType)
 
-Item.hasMany(ItemInfo, {as: 'info'})
+Item.hasMany(ItemInfo, { as: 'info' })
 ItemInfo.belongsTo(Item)
 
 Item.hasOne(FavoriteItem)

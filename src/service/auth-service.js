@@ -7,7 +7,7 @@ const UserDto = require('../dtos/user.dto')
 const ApiError = require('../exceptions/api-error')
 
 class AuthService {
-    async registration(email, password, username) {
+    async registration({ email, password, username, filename }) {
         const candidateEmail = await User.findOne({ where: { email } })
         const candidateUsername = await User.findOne({ where: { username } })
 
@@ -19,7 +19,7 @@ class AuthService {
         const hashPassword = await bcrypt.hash(password, 3)
         const activatedLink = uuid.v4()
 
-        const user = await User.create({ email, password: hashPassword, username, activatedLink })
+        const user = await User.create({ email, password: hashPassword, username, activatedLink, avatar: filename })
         await mailService.sendActivationEmail(email, `${process.env.API_URL}/auth/activate/${activatedLink}`)
         const userDto = new UserDto(user)
         const tokens = tokenService.generateTokens({ ...userDto })

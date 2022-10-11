@@ -6,23 +6,26 @@ const User = require('../db/models/user')
 const authService = require('../service/auth-service');
 const ApiError = require('../exceptions/api-error');
 
-const generateAccessToken = (user) => {
-    const payload = {
-        user
-    }
-
-    return jwt.sign(payload, secret, { expiresIn: '24h' })
-}
 
 class AuthController {
     async registration(req, res, next) {
         try {
             const errors = validationResult(req)
+
             if (!errors.isEmpty()) {
                 return next(ApiError.BadRequest('Ошибка при валидации', errors.array()))
             }
+
             const { email, password, username } = req.body
-            const userData = await authService.registration(email, password, username)
+            const { filename, size } = req.file
+
+            if (size > 1.5e7) {
+                return next(ApiError.BadRequest('Слишком большой размер файла. Максимальный - 15мб'))
+            }
+
+
+            const userData = await authService.registration({ email, password, username, filename })
+
             res.cookie('refreshToken', userData.refreshToken, { maxAge: 30 * 24 * 60 * 60 * 1000, httpOnly: true })
             return res.json(userData)
 
@@ -75,7 +78,7 @@ class AuthController {
         }
     }
 
-  
+
 }
 
 module.exports = new AuthController()
