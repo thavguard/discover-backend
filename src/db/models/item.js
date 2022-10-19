@@ -1,5 +1,6 @@
 const { DataTypes } = require("sequelize");
 const sequelize = require("../db");
+const Address = require("./address");
 const { FavoriteItem } = require("./favorite");
 const { PurchasedItem } = require("./purchased");
 const Rating = require("./rating");
@@ -26,8 +27,9 @@ const Item = sequelize.define(
         image: {
             type: DataTypes.STRING
         },
-        address: {
-            type: DataTypes.STRING
+        tel: {
+            type: DataTypes.STRING,
+            allowNull: false
         }
     }
 )
@@ -53,6 +55,28 @@ const ItemInfo = sequelize.define('item__info', {
     description: { type: DataTypes.STRING, allowNull: false }
 })
 
+const Characteristic = sequelize.define('characteristic', {
+    id: {
+        type: DataTypes.INTEGER,
+        primaryKey: true,
+        autoIncrement: true
+    },
+    title: {
+        type: DataTypes.STRING,
+        allowNull: false,
+        unique: true
+
+    }
+})
+
+const ItemCharacteristic = sequelize.define('item_characteristic', {
+    id: {
+        type: DataTypes.INTEGER,
+        primaryKey: true,
+        autoIncrement: true,
+    }
+})
+
 ItemType.hasMany(Item)
 Item.belongsTo(ItemType)
 
@@ -68,4 +92,10 @@ PurchasedItem.belongsTo(Item)
 Item.hasOne(SoldItem)
 SoldItem.belongsTo(Item)
 
-module.exports = { Item, ItemType, ItemInfo }
+Item.hasOne(Address)
+Address.belongsTo(Item)
+
+ItemType.belongsToMany(Characteristic, { through: ItemCharacteristic })
+Characteristic.belongsToMany(ItemType, { through: ItemCharacteristic })
+
+module.exports = { Item, ItemType, ItemInfo, Characteristic, ItemCharacteristic }

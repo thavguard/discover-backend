@@ -1,6 +1,7 @@
 const { DataTypes } = require("sequelize");
 const sequelize = require("../db");
 const { Favorite } = require("./favorite");
+const { Item } = require("./item");
 const { Purchased } = require("./purchased");
 const Rating = require("./rating");
 const { Sold } = require("./sold");
@@ -64,6 +65,9 @@ Purchased.belongsTo(User)
 
 User.hasOne(Sold)
 Sold.belongsTo(User)
+
+User.hasMany(Item)
+Item.belongsTo(User)
 
 User.belongsToMany(Rating, { through: UserRating })
 Rating.belongsToMany(User, { through: UserRating })
