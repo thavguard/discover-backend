@@ -23,7 +23,9 @@ class ItemController {
             }
 
 
-            const item = await Item.create({ name, description, price, image: filename, itemTypeId, userId: req.user.id, tel })
+            const item = await Item.create({
+                name, description, price, image: filename, itemTypeId, userId: req.user.id, tel
+            })
 
             address = JSON.parse(address)
             Address.create({ itemId: item.id, ...address })
@@ -32,13 +34,9 @@ class ItemController {
                 console.log(info);
                 info = JSON.parse(info)
                 console.log(info);
-                info.forEach(i =>
-                    ItemInfo.create({
-                        title: i.title,
-                        description: i.description,
-                        itemId: item.id
-                    })
-                )
+                info.forEach(i => ItemInfo.create({
+                    title: i.title, description: i.description, itemId: item.id
+                }))
             }
 
 
@@ -129,23 +127,24 @@ class ItemController {
 
     async getAllItems(req, res) {
         try {
-            const { itemTypeId } = req.query
+            let { itemTypeId, limit } = req.query
+            limit = limit || 24
+
             let items
 
             console.log(itemTypeId);
 
             if (itemTypeId) {
-                items = await Item.findAll({ where: { itemTypeId }, include: { model: Address, as: 'address' } })
+                items = await Item.findAll({ where: { itemTypeId }, include: { model: Address, as: 'address' }, limit })
             }
 
             if (!itemTypeId) {
-                items = await Item.findAll({ include: { model: Address, as: 'address' } })
+                items = await Item.findAll({ include: { model: Address, as: 'address' }, limit })
 
             }
 
 
             return res.json(items)
-
 
 
         } catch ({ message }) {
@@ -161,7 +160,9 @@ class ItemController {
         try {
 
             const { id } = req.params
-            const item = await Item.findOne({ where: { id }, include: [{ model: ItemInfo, as: 'info' }, { model: Address, as: 'address' }] })
+            const item = await Item.findOne({
+                where: { id }, include: [{ model: ItemInfo, as: 'info' }, { model: Address, as: 'address' }]
+            })
             console.log(item);
             res.json(item)
 
@@ -183,8 +184,7 @@ class ItemController {
                 }
             })
             res.json({
-                item,
-                message: `Item with id ${id} has been deleted`
+                item, message: `Item with id ${id} has been deleted`
             })
 
         } catch ({ message }) {
@@ -218,22 +218,20 @@ class ItemController {
             if (title && itemTypeIds) {
                 const characteristic = await Characteristic.create({ title })
 
-                itemTypeIds.forEach(async (itemTypeId) =>
-                    await ItemCharacteristic.create({ itemTypeId, characteristicId: characteristic.id })
-                )
+                itemTypeIds.forEach(async (itemTypeId) => await ItemCharacteristic.create({
+                    itemTypeId, characteristicId: characteristic.id
+                }))
 
                 return res.json({ title: characteristic.title, itemTypeIds: ItemCharacteristic })
             }
 
             if (characteristicId && itemTypeIds) {
-                itemTypeIds.forEach(async (itemTypeId) =>
-                    await ItemCharacteristic.create({ itemTypeId, characteristicId })
-                )
+                itemTypeIds.forEach(async (itemTypeId) => await ItemCharacteristic.create({
+                    itemTypeId, characteristicId
+                }))
 
                 return res.json(itemTypeIds)
             }
-
-
 
 
         } catch (error) {
@@ -243,7 +241,9 @@ class ItemController {
 
     async getItemCharactetistic(req, res, next) {
         try {
-            const { itemTypeId, characteristicId } = req.body
+            const { itemTypeId, characteristicId } = req.query
+
+            console.log(itemTypeId)
 
             if (itemTypeId && characteristicId) {
                 return next(ApiError.BadRequest('эндпоинт прнимает только один агрумент за раз'))
@@ -274,7 +274,6 @@ class ItemController {
             }
 
 
-
             return res.json(await ItemCharacteristic.findAll())
 
         } catch (error) {
@@ -291,31 +290,25 @@ class ItemController {
             }
 
             if (newItemTypeId) {
-                await ItemCharacteristic.update(
-                    {
-                        itemTypeId: newItemTypeId,
-                    }, {
+                await ItemCharacteristic.update({
+                    itemTypeId: newItemTypeId,
+                }, {
                     where: {
-                        itemTypeId: currentItemTypeId,
-                        characteristicId: currentCharacteristicId,
+                        itemTypeId: currentItemTypeId, characteristicId: currentCharacteristicId,
                     }
-                }
-                )
+                })
 
                 return res.json(true)
             }
 
             if (newCharacteristicId) {
-                await ItemCharacteristic.update(
-                    {
-                        characteristicId: newCharacteristicId,
-                    }, {
+                await ItemCharacteristic.update({
+                    characteristicId: newCharacteristicId,
+                }, {
                     where: {
-                        itemTypeId: currentItemTypeId,
-                        characteristicId: currentCharacteristicId,
+                        itemTypeId: currentItemTypeId, characteristicId: currentCharacteristicId,
                     }
-                }
-                )
+                })
 
                 return res.json(true)
             }
