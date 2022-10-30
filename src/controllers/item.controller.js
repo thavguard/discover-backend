@@ -1,10 +1,11 @@
 const db = require('../db/db')
 const path = require('path')
-const fs = require('fs')
-const { Item, ItemType, ItemInfo, Characteristic, ItemCharacteristic } = require('../db/models/item')
-const { validationResult } = require('express-validator')
+
+const {Item, ItemType, ItemInfo, Characteristic, ItemCharacteristic} = require('../db/models/item')
+const {validationResult} = require('express-validator')
 const ApiError = require('../exceptions/api-error')
 const Address = require('../db/models/address')
+const ItemService = require('../service/item-service')
 
 class ItemController {
     async addItem(req, res, next) {
@@ -15,45 +16,25 @@ class ItemController {
                 return next(ApiError.BadRequest('Ошибка при валидации', errors.array()))
             }
 
-            let { name, description, price, itemTypeId, address, info, tel } = req.body
-            const { filename, size } = req.file
+            let {name, description, price, itemTypeId, address, info, tel} = req.body
+            const {filename, size} = req.file
 
-            if (size > 1.5e7) {
-                return next(ApiError.BadRequest('Слишком большой размер файла. Максимальный - 15мб'))
-            }
-
-
-            const item = await Item.create({
-                name, description, price, image: filename, itemTypeId, userId: req.user.id, tel
+            const item = await ItemService.addItem({
+                size, address, info, tel, name, description, price, itemTypeId, filename, user: req.user
             })
-
-            address = JSON.parse(address)
-            Address.create({ itemId: item.id, ...address })
-
-            if (info) {
-                console.log(info);
-                info = JSON.parse(info)
-                console.log(info);
-                info.forEach(i => ItemInfo.create({
-                    title: i.title, description: i.description, itemId: item.id
-                }))
-            }
-
 
             return res.json(item)
 
-        } catch ({ message }) {
-            res.statusCode = 500
-            res.json({
-                error: message
-            })
+        } catch (error) {
+            return next(error)
         }
     }
 
     async addItemType(req, res, next) {
         try {
-            const { name } = req.body
-            const typeId = await ItemType.create({ name })
+            const {name} = req.body
+
+            const typeId = await ItemService.addItemType({name})
 
             return res.json(typeId)
 
@@ -64,19 +45,9 @@ class ItemController {
 
     async getItemTypes(req, res, next) {
         try {
-            const { id } = req.query
+            const {id} = req.query
 
-            console.log(id);
-
-            let type
-
-            if (id) {
-                type = await ItemType.findOne({ where: { id } })
-            }
-
-            if (!id) {
-                type = await ItemType.findAll()
-            }
+            const type = ItemService.getItemTypes({id})
 
 
             return res.json(type)
@@ -88,8 +59,8 @@ class ItemController {
 
     async deleteItemType(req, res, next) {
         try {
-            const { id } = req.body
-            const typeId = await ItemType.destroy({ where: { id } })
+            const {id} = req.body
+            const typeId = await ItemService.deleteItemType({id})
 
             return res.json(typeId)
 
@@ -98,236 +69,133 @@ class ItemController {
         }
     }
 
-    async editItem(req, res) {
+    async editItem(req, res, next) {
         try {
-            const { name, description, price, id, rating, tel } = req.body
-            const { filename, size } = req.file
+            const {name, description, price, id, rating, tel} = req.body
+            const {filename, size} = req.file
 
-            if (size > 1.5e7) {
-                return next(ApiError.BadRequest('Слишком большой размер файла. Максимальный - 15мб'))
-            }
-
-            const item = await Item.update({ name, description, price, image: filename, rating, tel }, {
-                where: {
-                    id: id
-                }
+            const newItem = await ItemService.editItem({
+                id, rating, tel, name, description, price, filename, size
             })
 
-            const newItem = await Item.findOne({ where: { id } })
 
             res.json(newItem)
 
-        } catch ({ message }) {
-            res.statusCode = 500
-            res.json({
-                error: message
-            })
+        } catch (error) {
+            next(error)
         }
     }
 
-    async getAllItems(req, res) {
+    async getAllItems(req, res, next) {
         try {
-            let { itemTypeId, limit } = req.query
+            let {itemTypeId, limit} = req.query
             limit = limit || 24
 
-            let items
-
-            console.log(itemTypeId);
-
-            if (itemTypeId) {
-                items = await Item.findAll({ where: { itemTypeId }, include: { model: Address, as: 'address' }, limit })
-            }
-
-            if (!itemTypeId) {
-                items = await Item.findAll({ include: { model: Address, as: 'address' }, limit })
-
-            }
-
+            const items = await ItemService.getAllItems({itemTypeId, limit})
 
             return res.json(items)
 
 
-        } catch ({ message }) {
-            res.statusCode = 500
-            res.json({
-                error: message
-            })
+        } catch (error) {
+            next(error)
         }
 
     }
 
-    async getItemById(req, res) {
+    async getItemById(req, res, next) {
         try {
+            const {id} = req.params
 
-            const { id } = req.params
-            const item = await Item.findOne({
-                where: { id }, include: [{ model: ItemInfo, as: 'info' }, { model: Address, as: 'address' }]
-            })
-            console.log(item);
+            const item = await ItemService.getItemById({id})
+
             res.json(item)
 
-        } catch ({ message }) {
-            res.statusCode = 500
-            res.json({
-                error: message
-            })
+        } catch (error) {
+            next(error)
         }
     }
 
-    async deleteItem(req, res) {
+    async deleteItem(req, res, next) {
         try {
+            const {id} = req.body
 
-            const { id } = req.body
-            const item = await Item.destroy({
-                where: {
-                    id
-                }
-            })
-            res.json({
+            const item = await ItemService.deleteItem({id})
+
+            return res.json({
                 item, message: `Item with id ${id} has been deleted`
             })
 
-        } catch ({ message }) {
-            res.statusCode = 500
-            res.json({
-                error: message
-            })
+        } catch (error) {
+            next(error)
         }
     }
 
-    async getImageById(req, res) {
+    async getImageById(req, res, next) {
         try {
-            const { id } = req.params
-            const item = await Item.findOne({ where: { id } })
+            const {id} = req.params
 
-            const imagePath = path.resolve(__dirname, '../../uploads', item.image)
+            await ItemService.getImageById(id, (data) => res.end(data))
 
-            fs.readFile(imagePath, (err, data) => {
-                res.end(data);
-            });
+            return
 
-        } catch ({ message }) {
-            res.status(400).json({ message })
+
+        } catch (error) {
+            next(error)
         }
     }
 
     async createItemCharacteristic(req, res, next) {
         try {
-            const { title, itemTypeIds, characteristicId, } = req.body
+            const {title, itemTypeIds, characteristicId,} = req.body
 
-            if (title && itemTypeIds) {
-                const characteristic = await Characteristic.create({ title })
+            const data = await ItemService.createItemCharacteristic({characteristicId, itemTypeIds, title})
 
-                itemTypeIds.forEach(async (itemTypeId) => await ItemCharacteristic.create({
-                    itemTypeId, characteristicId: characteristic.id
-                }))
-
-                return res.json({ title: characteristic.title, itemTypeIds: ItemCharacteristic })
-            }
-
-            if (characteristicId && itemTypeIds) {
-                itemTypeIds.forEach(async (itemTypeId) => await ItemCharacteristic.create({
-                    itemTypeId, characteristicId
-                }))
-
-                return res.json(itemTypeIds)
-            }
-
+            return res.json(data)
 
         } catch (error) {
-            return next(ApiError.BadRequest(error.message, error))
+            next(error)
         }
     }
 
-    async getItemCharactetistic(req, res, next) {
+    async getItemCharacteristic(req, res, next) {
         try {
-            const { itemTypeId, characteristicId } = req.query
+            const {itemTypeId, characteristicId} = req.query
 
-            console.log(itemTypeId)
+            const data = await ItemService.getItemCharacteristic({characteristicId, itemTypeId})
 
-            if (itemTypeId && characteristicId) {
-                return next(ApiError.BadRequest('эндпоинт прнимает только один агрумент за раз'))
-            }
+            return data
 
-            if (itemTypeId) {
-                const charIds = await ItemCharacteristic.findAll({
-                    where: { itemTypeId },
-                })
-
-                const characteristics = await Characteristic.findAll({
-                    where: {
-                        id: charIds.map(item => item.characteristicId),
-                    }
-                })
-
-                return res.json(characteristics)
-            }
-
-            if (characteristicId) {
-                const itemTypeIds = await ItemCharacteristic.findAll({
-                    where: {
-                        characteristicId
-                    }
-                })
-
-                return res.json(itemTypeIds)
-            }
-
-
-            return res.json(await ItemCharacteristic.findAll())
 
         } catch (error) {
-            return next(ApiError.BadRequest(error.message, error))
+            next(error)
         }
     }
 
     async updateItemChar(req, res, next) {
         try {
-            const { currentItemTypeId, currentCharacteristicId, newItemTypeId, newCharacteristicId } = req.body
+            const body = req.body
 
-            if (newItemTypeId && newCharacteristicId) {
-                return next(ApiError.BadRequest('Необходимо посылать тольк один из аргументов `newItemTypeId` или `newCharacteristicId`'))
-            }
+            const data = await ItemService.updateItemChar(body)
 
-            if (newItemTypeId) {
-                await ItemCharacteristic.update({
-                    itemTypeId: newItemTypeId,
-                }, {
-                    where: {
-                        itemTypeId: currentItemTypeId, characteristicId: currentCharacteristicId,
-                    }
-                })
-
-                return res.json(true)
-            }
-
-            if (newCharacteristicId) {
-                await ItemCharacteristic.update({
-                    characteristicId: newCharacteristicId,
-                }, {
-                    where: {
-                        itemTypeId: currentItemTypeId, characteristicId: currentCharacteristicId,
-                    }
-                })
-
-                return res.json(true)
-            }
+            return data
 
         } catch (error) {
-            return next(ApiError.BadRequest(error.message, error))
+            next(error)
         }
     }
 
     async deleteItemChar(req, res, next) {
-        const { itemTypeId, characteristicId } = req.body
+        try {
+            const {itemTypeId, characteristicId} = req.body
 
-        const itemChar = await ItemCharacteristic.destroy({
-            where: {
-                itemTypeId, characteristicId
-            }
-        })
+            const itemChar = await ItemService.deleteItemChar({itemTypeId, characteristicId})
 
-        return res.json(itemChar)
+            return res.json(itemChar)
+
+        } catch (error) {
+            next(error)
+        }
+
     }
 }
 

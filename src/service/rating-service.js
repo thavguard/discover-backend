@@ -1,23 +1,25 @@
 const Rating = require('../db/models/rating')
+
 class RatingService {
     async getRate(rate, userId) {
 
-        const rate = await Rating.findOne({ where: { userId } })
+        const data = await Rating.findOne({ where: { userId } })
 
-        return rate
+        return data
 
     }
 
     async addRate({ rate, userId, user }) {
 
-        const rate = await Rating.create({ rate, userId, userFrom: user.id })
+        const data = await Rating.create({ rate, userId, userFrom: user.id })
 
-        return rate
+        return data
     }
-    async deleteRate({ rate, userId, user }) {
-        const rate = await Rating.destroy({ where: { userId, userFrom: user.id } })
 
-        return rate
+    async deleteRate({ rate, userId, user }) {
+        const data = await Rating.destroy({ where: { userId, userFrom: user.id } })
+
+        return data
     }
 }
 
