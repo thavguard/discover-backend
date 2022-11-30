@@ -6,12 +6,12 @@ const database = process.env.DATABASE
 const password = process.env.PASSWORD
 const port = process.env.DB_PORT
 
-const sequelize = new Sequelize(database, user, password, {
+const sequelize = process.env.deploy === 'dev' ? new Sequelize(database, user, password, {
     host,
     port,
     dialect: 'postgres',
     logging: false
-})
+}) : new Sequelize(process.env.pg_URI)
 
 module.exports = sequelize
 
