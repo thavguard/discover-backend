@@ -6,44 +6,32 @@ const { PurchasedItem } = require("./purchased");
 const Rating = require("./rating");
 const { SoldItem } = require("./sold");
 
-const Item = sequelize.define(
-    'item',
-    {
-        id: {
-            type: DataTypes.INTEGER,
-            primaryKey: true,
-            autoIncrement: true
-        },
-        name: {
-            type: DataTypes.STRING,
-            allowNull: false
-        },
-        description: {
-            type: DataTypes.STRING
-        },
-        price: {
-            type: DataTypes.INTEGER
-        },
-        image: {
-            type: DataTypes.STRING
-        },
-        tel: {
-            type: DataTypes.STRING,
-            allowNull: false
-        }
+const Item = sequelize.define('item', {
+    id: {
+        type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true
+    }, name: {
+        type: DataTypes.STRING, allowNull: false
+    }, description: {
+        type: DataTypes.STRING
+    }, price: {
+        type: DataTypes.INTEGER
+    }, image: {
+        type: DataTypes.STRING
+    }, tel: {
+        type: DataTypes.STRING, allowNull: false
+    }, wasCreated: {
+        type: DataTypes.BIGINT, allowNull: false
     }
-)
+}, {
+    timestamps: false,
+
+})
 
 const ItemType = sequelize.define('item_type', {
     id: {
-        type: DataTypes.INTEGER,
-        primaryKey: true,
-        autoIncrement: true
-    },
-    name: {
-        type: DataTypes.STRING,
-        unique: true,
-        allowNull: false
+        type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true
+    }, name: {
+        type: DataTypes.STRING, unique: true, allowNull: false
     }
 }, {
     timestamps: false
@@ -57,23 +45,16 @@ const ItemInfo = sequelize.define('item__info', {
 
 const Characteristic = sequelize.define('characteristic', {
     id: {
-        type: DataTypes.INTEGER,
-        primaryKey: true,
-        autoIncrement: true
-    },
-    title: {
-        type: DataTypes.STRING,
-        allowNull: false,
-        unique: true
+        type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true
+    }, title: {
+        type: DataTypes.STRING, allowNull: false, unique: true
 
     }
 })
 
 const ItemCharacteristic = sequelize.define('item_characteristic', {
     id: {
-        type: DataTypes.INTEGER,
-        primaryKey: true,
-        autoIncrement: true,
+        type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true,
     }
 })
 

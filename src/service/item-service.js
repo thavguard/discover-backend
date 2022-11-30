@@ -3,16 +3,21 @@ const { Item, ItemInfo, ItemType, Characteristic, ItemCharacteristic } = require
 const Address = require("../db/models/address");
 const path = require("path");
 const fs = require("fs");
+const sharp = require('sharp')
+const { User } = require("../db");
+const { Op } = require("sequelize");
+const sequelize = require('sequelize')
+
 
 class ItemService {
 
-    async addItem({ size, name, description, price, filename, itemTypeId, user, tel, address, info }) {
+    async addItem({ size, name, description, price, filename, itemTypeId, user, tel, address, info, wasCreated }) {
         if (size > 1.5e7) {
             throw ApiError.BadRequest('Слишком большой размер файла. Максимальный - 15мб')
         }
 
         const item = await Item.create({
-            name, description, price, image: filename, itemTypeId, userId: user.id, tel
+            name, description, price, image: filename, itemTypeId, userId: user.id, tel, wasCreated
         })
 
         let addressObj = JSON.parse(address)
@@ -31,9 +36,7 @@ class ItemService {
     }
 
     async addItemType({ name }) {
-        const typeId = await ItemType.create({ name })
-
-        return typeId
+        return await ItemType.create({ name })
     }
 
     async getItemTypes({ id }) {
@@ -49,9 +52,7 @@ class ItemService {
     }
 
     async deleteItemType({ id }) {
-        const typeId = await ItemType.destroy({ where: { id } })
-
-        return typeId
+        return await ItemType.destroy({ where: { id } })
     }
 
     async editItem({ size, name, description, price, filename, rating, tel, id }) {
@@ -65,53 +66,75 @@ class ItemService {
             }
         })
 
-        const newItem = await Item.findOne({ where: { id } })
+        return await Item.findOne({ where: { id } })
 
-        return newItem
     }
 
-    async getAllItems({ itemTypeId, limit }) {
-        let items
+    async getAllItems({
+                          wasCreated, price, name, creator, itemTypeId, limit, offset
+                      }) {
+        let items = {
+            data: [], length: 0,
+        }
+
+        items.data = await Item.findAll()
+
+        console.log({ price, name, creator, itemTypeId, wasCreated })
+
+        if (wasCreated) {
+            items.data = items.data.filter(item => +item.wasCreated >= +wasCreated - 80827943)
+        }
+
+        if (price[0]) {
+            items.data = items.data.filter(item => item.price >= +price[0])
+        }
+
+        if (price[1]) {
+            items.data = items.data.filter(item => item.price <= +price[1])
+        }
+
+        if (name) {
+            items.data = items.data.filter(item => item.name.toLowerCase().trim().includes(name.toLowerCase().trim())) // TODO: Протестить метод trim()
+        }
 
         if (itemTypeId) {
-            items = await Item.findAll({
-                where: { itemTypeId }, include: { model: Address, as: 'address' }, limit,
-            })
-        } else {
-            items = await Item.findAll({
-                include: { model: Address, as: 'address' }, limit
-            })
+            items.data = items.data.filter(item => item.itemTypeId === +itemTypeId)
         }
+
+
+        items.length = (await Item.findAll()).length
+        items.length = Math.round(items.length)
+
 
         return items
 
     }
 
     async getItemById({ id }) {
-        const item = await Item.findOne({
+        return await Item.findOne({
             where: { id }, include: [{ model: ItemInfo, as: 'info' }, { model: Address, as: 'address' }]
         })
-
-        return item
     }
 
     async deleteItem({ id }) {
-        const item = await Item.destroy({
+        return await Item.destroy({
             where: {
                 id
             }
         })
-
-        return item
     }
 
     async getImageById(id, onRead) {
         const item = await Item.findOne({ where: { id } })
         const imagePath = path.resolve(__dirname, '../../uploads', item.image)
 
-        fs.readFile(imagePath, (err, data) => {
-            onRead(data)
-            return data
+        fs.readFile(imagePath, async (err, data) => {
+            const compressedData = await sharp(data)
+                .webp({
+                    quality: 25, chromaSubsampling: '4:4:4',
+                })
+                .toBuffer();
+            return onRead(compressedData)
 
         });
     }
@@ -147,23 +170,19 @@ class ItemService {
                 where: { itemTypeId },
             })
 
-            const characteristics = await Characteristic.findAll({
+            return await Characteristic.findAll({
                 where: {
                     id: charIds.map(item => item.characteristicId),
                 }
             })
-
-            return characteristics
         }
 
         if (characteristicId) {
-            const itemTypeIds = await ItemCharacteristic.findAll({
+            return await ItemCharacteristic.findAll({
                 where: {
                     characteristicId
                 }
             })
-
-            return itemTypeIds
         }
 
 
@@ -200,21 +219,16 @@ class ItemService {
             return true
         }
 
-        throw ApiError.BadRequest('Что то пошло не так')
+        throw ApiError.BadRequest('Что-то пошло не так')
     }
 
     async deleteItemChar({ characteristicId, itemTypeId }) {
-        const itemChar = await ItemCharacteristic.destroy({
+        return await ItemCharacteristic.destroy({
             where: {
                 itemTypeId, characteristicId
             }
         })
-
-        return itemChar
     }
-
-
 }
 
 module.exports = new ItemService()
-

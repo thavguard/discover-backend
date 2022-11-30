@@ -9,9 +9,6 @@ const errorMiddleware = require('./middlewares/error-middleware')
 const router = require('./routes/index')
 
 
-
-
-
 const start = async () => {
     try {
         await sequelize.authenticate()
@@ -22,7 +19,6 @@ const start = async () => {
         console.log('Невозможно выполнить подключение к БД: ', e)
     }
 }
-
 
 
 const PORT = process.env.PORT || 5050

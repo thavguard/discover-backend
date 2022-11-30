@@ -3,8 +3,7 @@ const router = new Router()
 const itemController = require('../controllers/item.controller')
 const upload = require('../utils/multer')
 const tokenMiddleware = require('../middlewares/tokenMiddleware')
-const { body } = require('express-validator')
-
+const {body} = require('express-validator')
 
 
 router.post('/item',

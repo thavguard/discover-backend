@@ -1,8 +1,8 @@
 const db = require('../db/db')
 const path = require('path')
 
-const {Item, ItemType, ItemInfo, Characteristic, ItemCharacteristic} = require('../db/models/item')
-const {validationResult} = require('express-validator')
+const { Item, ItemType, ItemInfo, Characteristic, ItemCharacteristic } = require('../db/models/item')
+const { validationResult } = require('express-validator')
 const ApiError = require('../exceptions/api-error')
 const Address = require('../db/models/address')
 const ItemService = require('../service/item-service')
@@ -16,11 +16,11 @@ class ItemController {
                 return next(ApiError.BadRequest('Ошибка при валидации', errors.array()))
             }
 
-            let {name, description, price, itemTypeId, address, info, tel} = req.body
-            const {filename, size} = req.file
+            let { name, description, price, itemTypeId, address, info, tel, wasCreated } = req.body
+            const { filename, size } = req.file
 
             const item = await ItemService.addItem({
-                size, address, info, tel, name, description, price, itemTypeId, filename, user: req.user
+                size, address, info, tel, name, description, price, itemTypeId, filename, user: req.user, wasCreated
             })
 
             return res.json(item)
@@ -32,9 +32,9 @@ class ItemController {
 
     async addItemType(req, res, next) {
         try {
-            const {name} = req.body
+            const { name } = req.body
 
-            const typeId = await ItemService.addItemType({name})
+            const typeId = await ItemService.addItemType({ name })
 
             return res.json(typeId)
 
@@ -45,9 +45,9 @@ class ItemController {
 
     async getItemTypes(req, res, next) {
         try {
-            const {id} = req.query
+            const { id } = req.query
 
-            const type = ItemService.getItemTypes({id})
+            const type = await ItemService.getItemTypes({ id })
 
 
             return res.json(type)
@@ -59,8 +59,8 @@ class ItemController {
 
     async deleteItemType(req, res, next) {
         try {
-            const {id} = req.body
-            const typeId = await ItemService.deleteItemType({id})
+            const { id } = req.body
+            const typeId = await ItemService.deleteItemType({ id })
 
             return res.json(typeId)
 
@@ -71,8 +71,8 @@ class ItemController {
 
     async editItem(req, res, next) {
         try {
-            const {name, description, price, id, rating, tel} = req.body
-            const {filename, size} = req.file
+            const { name, description, price, id, rating, tel } = req.body
+            const { filename, size } = req.file
 
             const newItem = await ItemService.editItem({
                 id, rating, tel, name, description, price, filename, size
@@ -86,14 +86,20 @@ class ItemController {
         }
     }
 
+    l
+
     async getAllItems(req, res, next) {
         try {
-            let {itemTypeId, limit} = req.query
+            let { wasCreated, price, name, creator, itemTypeId, limit, page } = req.query
+
             limit = limit || 24
+            page = page || 1
+            let offset = page * limit - limit
 
-            const items = await ItemService.getAllItems({itemTypeId, limit})
+            const items = await ItemService.getAllItems({ wasCreated, price, name, creator, itemTypeId, limit, offset })
 
-            return res.json(items)
+
+            return res.json({ items: items.data, totalPages: items.length / limit })
 
 
         } catch (error) {
@@ -104,9 +110,9 @@ class ItemController {
 
     async getItemById(req, res, next) {
         try {
-            const {id} = req.params
+            const { id } = req.params
 
-            const item = await ItemService.getItemById({id})
+            const item = await ItemService.getItemById({ id })
 
             res.json(item)
 
@@ -117,9 +123,9 @@ class ItemController {
 
     async deleteItem(req, res, next) {
         try {
-            const {id} = req.body
+            const { id } = req.body
 
-            const item = await ItemService.deleteItem({id})
+            const item = await ItemService.deleteItem({ id })
 
             return res.json({
                 item, message: `Item with id ${id} has been deleted`
@@ -132,11 +138,9 @@ class ItemController {
 
     async getImageById(req, res, next) {
         try {
-            const {id} = req.params
+            const { id } = req.params
 
             await ItemService.getImageById(id, (data) => res.end(data))
-
-            return
 
 
         } catch (error) {
@@ -146,9 +150,9 @@ class ItemController {
 
     async createItemCharacteristic(req, res, next) {
         try {
-            const {title, itemTypeIds, characteristicId,} = req.body
+            const { title, itemTypeIds, characteristicId, } = req.body
 
-            const data = await ItemService.createItemCharacteristic({characteristicId, itemTypeIds, title})
+            const data = await ItemService.createItemCharacteristic({ characteristicId, itemTypeIds, title })
 
             return res.json(data)
 
@@ -159,11 +163,11 @@ class ItemController {
 
     async getItemCharacteristic(req, res, next) {
         try {
-            const {itemTypeId, characteristicId} = req.query
+            const { itemTypeId, characteristicId } = req.query
 
-            const data = await ItemService.getItemCharacteristic({characteristicId, itemTypeId})
+            const data = await ItemService.getItemCharacteristic({ characteristicId, itemTypeId })
 
-            return data
+            return res.json(data)
 
 
         } catch (error) {
@@ -177,7 +181,7 @@ class ItemController {
 
             const data = await ItemService.updateItemChar(body)
 
-            return data
+            return res.json(data)
 
         } catch (error) {
             next(error)
@@ -186,9 +190,9 @@ class ItemController {
 
     async deleteItemChar(req, res, next) {
         try {
-            const {itemTypeId, characteristicId} = req.body
+            const { itemTypeId, characteristicId } = req.body
 
-            const itemChar = await ItemService.deleteItemChar({itemTypeId, characteristicId})
+            const itemChar = await ItemService.deleteItemChar({ itemTypeId, characteristicId })
 
             return res.json(itemChar)
 
