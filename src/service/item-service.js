@@ -71,10 +71,14 @@ class ItemService {
     }
 
     async getAllItems({
-                          wasCreated, price, name, creator, itemTypeId, limit, offset
-                      }) {
+        wasCreated, price, name, creator, itemTypeId, limit, offset
+    }) {
         let items = {
-            data: [], length: 0,
+            data: [], total: {
+                price: 0,
+                length: 0,
+                pages: 0
+            },
         }
 
         items.data = await Item.findAll()
@@ -102,9 +106,13 @@ class ItemService {
         }
 
 
-        items.length = (await Item.findAll()).length
-        items.length = Math.round(items.length)
+        const total = (await Item.findAll())
 
+        items.total.length = total.length
+        items.total.price = total.reduce((acc, curr) =>
+            acc.price > curr.price ? acc : curr
+        ).price;
+        items.total.pages = Math.round(items.total.length / limit) + 1
 
         return items
 

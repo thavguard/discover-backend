@@ -99,7 +99,7 @@ class ItemController {
             const items = await ItemService.getAllItems({ wasCreated, price, name, creator, itemTypeId, limit, offset })
 
 
-            return res.json({ items: items.data, totalPages: items.length / limit })
+            return res.json({ items: items.data, total: items.total })
 
 
         } catch (error) {
