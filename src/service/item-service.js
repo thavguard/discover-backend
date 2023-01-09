@@ -71,8 +71,12 @@ class ItemService {
     }
 
     async getAllItems({
-        wasCreated, price, name, creator, itemTypeId, limit, offset
-    }) {
+                          wasCreated = '',
+                          price = [], name = '',
+                          creator = '', itemTypeId = '',
+                          limit = '',
+                          offset = ''
+                      }) {
         let items = {
             data: [], total: {
                 price: 0,
