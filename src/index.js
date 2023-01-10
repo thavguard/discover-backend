@@ -3,6 +3,7 @@ const express = require('express')
 const cors = require('cors')
 const cookieParser = require('cookie-parser')
 
+
 const sequelize = require('./db/db')
 require('./db/index')
 const errorMiddleware = require('./middlewares/error-middleware')
@@ -31,6 +32,10 @@ app.use(cors({
 app.use(cookieParser())
 app.use(express.json())
 app.use('/', router)
+app.use('/static', express.static('uploads'));
+
+
+
 
 app.use(errorMiddleware)
 
