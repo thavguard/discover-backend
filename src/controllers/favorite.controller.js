@@ -28,6 +28,17 @@ class FavoriteController {
         }
     }
 
+    async getFavoriteItems(req, res, next) {
+
+        try {
+            const items = await favoriteService.getFavoriteItems(req.user)
+
+            return res.json(items)
+        } catch (e) {
+            next(e)
+        }
+    }
+
     async getFavById(req, res, next) {
         try {
             const { itemId } = req.params

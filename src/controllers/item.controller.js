@@ -90,13 +90,22 @@ class ItemController {
 
     async getAllItems(req, res, next) {
         try {
-            let { wasCreated, price, name, creator, itemTypeId, limit, page } = req.query
+            let { wasCreated, price, name, creator, itemTypeId, limit, page, itemId } = req.query
 
             limit = limit || 24
             page = page || 1
             let offset = page * limit - limit
 
-            const items = await ItemService.getAllItems({ wasCreated, price, name, creator, itemTypeId, limit, offset })
+            const items = await ItemService.getAllItems({
+                wasCreated,
+                price,
+                name,
+                creator,
+                itemTypeId,
+                limit,
+                offset,
+                itemId
+            })
 
 
             return res.json({ items: items.data, total: items.total })
@@ -201,6 +210,12 @@ class ItemController {
         }
 
     }
+
+
+    async detectItem(req, res, next) {
+        return res.json('dsds')
+    }
+
 }
 
 module.exports = new ItemController()

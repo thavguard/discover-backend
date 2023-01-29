@@ -42,6 +42,9 @@ const User = sequelize.define(
             type: DataTypes.STRING,
             defaultValue: 'USER'
         },
+        phone: {
+            type: DataTypes.INTEGER,
+        }
     }
 )
 

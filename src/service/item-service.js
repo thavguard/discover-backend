@@ -72,22 +72,25 @@ class ItemService {
 
     async getAllItems({
                           wasCreated = '',
-                          price = [], name = '',
-                          creator = '', itemTypeId = '',
+                          price = [],
+                          name = '',
+                          creator = '',
+                          itemTypeId = '',
                           limit = '',
-                          offset = ''
+                          offset = '',
+                          userId = 0,
+                          itemId = [],
                       }) {
         let items = {
             data: [], total: {
-                price: 0,
-                length: 0,
-                pages: 0
+                price: 0, length: 0, pages: 0
             },
         }
 
+
         items.data = await Item.findAll()
 
-        console.log({ price, name, creator, itemTypeId, wasCreated })
+        console.log({ price, name, creator, itemTypeId, wasCreated, itemId })
 
         if (wasCreated) {
             items.data = items.data.filter(item => +item.wasCreated >= +wasCreated - 80827943)
@@ -109,13 +112,21 @@ class ItemService {
             items.data = items.data.filter(item => item.itemTypeId === +itemTypeId)
         }
 
+        if (userId) {
+            items.data = items.data.filter(item => item.userId === userId)
+        }
+
+        if (itemId.length) {
+            itemId.forEach(item => items.data = items.data.filter(i => i.id === +item)) // TODO: Написать сортировку по массиву айдишников
+
+            console.log({ items })
+        }
+
 
         const total = (await Item.findAll())
 
         items.total.length = total.length
-        items.total.price = total.reduce((acc, curr) =>
-            acc.price > curr.price ? acc : curr
-        ).price;
+        items.total.price = total.reduce((acc, curr) => acc.price > curr.price ? acc : curr).price;
         items.total.pages = Math.round(items.total.length / limit) + 1
 
         return items

@@ -3,7 +3,7 @@ const router = new Router()
 const itemController = require('../controllers/item.controller')
 const upload = require('../utils/multer')
 const tokenMiddleware = require('../middlewares/tokenMiddleware')
-const {body} = require('express-validator')
+const { body } = require('express-validator')
 
 
 router.post('/item',
@@ -26,6 +26,8 @@ router.post('/itemChar', tokenMiddleware, itemController.createItemCharacteristi
 router.get('/itemChar', itemController.getItemCharacteristic)
 router.put('/itemChar', tokenMiddleware, itemController.updateItemChar)
 router.delete('/itemChar', tokenMiddleware, itemController.deleteItemChar)
+
+router.post('/detectItem', tokenMiddleware, itemController.detectItem)
 
 
 module.exports = router
